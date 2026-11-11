@@ -1,0 +1,19 @@
+# Local dataset files (never commit the CIFAR-10 data)
+data/
+../data/
+**/cifar-10-batches-py/
+
+# Generated model weights are large; regenerate them with run_all.py.
+outputs/checkpoints/
+*.pt
+
+# Python and notebook caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Local environment files
+.env
+.venv/
+venv/

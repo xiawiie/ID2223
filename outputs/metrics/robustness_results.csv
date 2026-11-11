@@ -1,0 +1,3 @@
+name,clean_accuracy,noise_accuracy,rotation_accuracy,noise_drop,rotation_drop
+ResNet basic,0.835,0.7789,0.6632,0.05609999999999993,0.17179999999999995
+ResNet augmented,0.9037,0.7349,0.6824,0.16879999999999995,0.22129999999999994
