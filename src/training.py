@@ -42,11 +42,29 @@ def fit(model, train_loader, validation_loader, device, name, weight_decay=0.0, 
     model.load_state_dict(best_state)
     return model, history, {"name": name, "parameters": sum(p.numel() for p in model.parameters() if p.requires_grad), "training_seconds": time.perf_counter() - start, "best_validation_accuracy": best_accuracy}
 
-def inference_seconds(model, loader, device, max_batches=20):
-    model.eval(); start = time.perf_counter()
+def benchmark_inference(model, loader, device, warmup=5, repeats=20):
+    """Forward-pass throughput on one test batch that is already on the device.
+
+    Data loading is excluded, the model runs in eval mode with float32 weights,
+    and the first `warmup` passes are not timed.
+    """
+    model.eval()
+    images, _ = next(iter(loader))
+    images = images.to(device)
+
+    def sync():
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+
     with torch.no_grad():
-        for index, (images, _) in enumerate(loader):
-            if index >= max_batches: break
-            _ = model(images.to(device))
-    if device.type == "cuda": torch.cuda.synchronize()
-    return time.perf_counter() - start
+        for _ in range(warmup):
+            model(images)
+        sync()
+        start = time.perf_counter()
+        for _ in range(repeats):
+            model(images)
+        sync()
+    elapsed = time.perf_counter() - start
+    ms_per_batch = 1000 * elapsed / repeats
+    return {"inference_ms_per_batch": ms_per_batch,
+            "inference_images_per_second": len(images) * repeats / elapsed}
