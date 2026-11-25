@@ -1,4 +1,4 @@
-"""CNN architectures required by Part A9 of the assignment."""
+"""AlexNet and ResNet variants for 32x32 CIFAR-10 inputs (Lab 2, Part A9)."""
 
 import torch
 import torch.nn as nn
@@ -16,7 +16,7 @@ class CIFAR10AlexNet(nn.Module):
             nn.Conv2d(384, 256, 3, padding=1), nn.ReLU(inplace=True),
             nn.Conv2d(256, 256, 3, padding=1), nn.ReLU(inplace=True), nn.MaxPool2d(2, 2),
         )
-        # Part A9 specifies 4096 -> 1024 -> 512 -> 10.
+        # 256 x 4 x 4 = 4096 flattened features -> 1024 -> 512 -> 10.
         self.classifier = nn.Sequential(
             nn.Flatten(), nn.Linear(256 * 4 * 4, 1024), nn.ReLU(inplace=True),
             nn.Dropout(dropout), nn.Linear(1024, 512), nn.ReLU(inplace=True),
@@ -28,7 +28,7 @@ class CIFAR10AlexNet(nn.Module):
 
 
 class BasicBlock(nn.Module):
-    """Two-convolution residual block used by the CIFAR-10 ResNet."""
+    """Basic residual block: two 3x3 convolutions plus an identity or 1x1 projection shortcut."""
 
     def __init__(self, cin, cout, stride=1, dropout=0.0):
         super().__init__()
@@ -49,7 +49,7 @@ class BasicBlock(nn.Module):
 
 
 class CIFAR10ResNet(nn.Module):
-    """ResNet-18-style CIFAR-10 adaptation required by Part A9."""
+    """ResNet-18 layout with a 3x3 stem and no initial max-pooling, as used for CIFAR-10."""
 
     def __init__(self, base_width=64, dropout=0.0):
         super().__init__()
