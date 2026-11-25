@@ -1,28 +1,37 @@
-# CIFAR-10 CNN Experiment
+# ID2223 Lab 1 – CNNs on CIFAR-10
 
-This project implements all mandatory Tasks 1-6 from the lab assignment using PyTorch. Source code, comments, and the final report notebook are written in English.
+AlexNet and ResNet trained on CIFAR-10 with PyTorch, plus experiments on model width, dropout, L2 regularisation, data augmentation, corrupted test images and FGSM adversarial examples.
 
-## Project layout
+## Layout
 
-- `src/`: reusable data, model, training, evaluation, robustness, and adversarial code.
-- `tests/test_smoke.py`: minimal model smoke test.
-- `outputs/`: measured CSV metrics, histories, confusion matrix, predictions, adversarial result, seed-stability summary, and checkpoints.
-- `notebooks/Assignment1_Report.ipynb`: executed English report and visual presentation.
+- `src/` – data loading, models, training loop, robustness and adversarial evaluation.
+- `notebooks/Assignment1_Report.ipynb` – the main notebook. It contains the full source code (written to `src/` by `%%writefile` cells), runs all experiments and produces every table and figure used in the report.
+- `outputs/metrics/` – CSV/JSON results from the last full run.
+- `tests/test_smoke.py` – checks output shapes and parameter counts of the two baseline models.
+- `run_seed_stability.py`, `run_seed_stability_resume.py` – optional repeat of the ResNet baseline/augmented runs with three seeds (not used in the report).
 
-## Run
+## Running
 
-From this directory:
+On Google Colab: open the notebook, choose a GPU runtime (Runtime → Change runtime type → T4 GPU) and run all cells. CIFAR-10 is downloaded automatically. A full run takes roughly 1.5–2 hours on a T4.
+
+Locally:
 
 ```text
+pip install -r requirements.txt
 python run_all.py
 ```
 
-The main experiment uses a fixed 30-epoch budget per configuration, batch size 512, CUDA mixed precision when available, and a fixed random seed. It runs AlexNet, ResNet, capacity, Dropout, L2, augmentation, corruption, prediction, and FGSM evaluations. The final report focuses on the mandatory Tasks 1-6; optional multi-seed stability analysis is not included in the final submission.
+`CIFAR10_DATA_ROOT` sets where the dataset is stored (default: a `data` folder next to the repository).
 
-Then open `notebooks/Assignment1_Report.ipynb` and run all cells to reproduce the report from the generated outputs.
+## Setup in short
 
-The official CIFAR-10 test set is kept separate from training and validation. Checkpoints are selected by validation accuracy before final test evaluation. The dataset is intentionally kept outside this repository. Set `CIFAR10_DATA_ROOT` to the local CIFAR-10 directory, or place the dataset in the sibling `data` directory expected by the default configuration.
+- 45,000 / 5,000 class-balanced train/validation split from the official training set (seed 2223); the official 10,000-image test set is only used for final evaluation.
+- 30 epochs per configuration, batch size 512, SGD (lr 0.05, momentum 0.9) with cosine annealing, mixed precision on CUDA. The checkpoint with the best validation accuracy is kept.
+- The random seed is reset before each model is built, so configurations with the same architecture start from the same weights.
 
-## Architecture assumption
+## Architectures
 
-The implementation follows the official Part A9 CIFAR-10 adaptations: AlexNet uses 64/192/384/256/256 convolutional channels and a 4096 -> 1024 -> 512 -> 10 classifier; ResNet uses a 64-channel stem, four two-block stages with 64/128/256/512 channels, projection shortcuts, global average pooling, and a 512 -> 10 head. No pretrained or torchvision model constructors are used.
+Both models follow the CIFAR-10 adaptations from Lab 2, Part A9, and are written from scratch (no torchvision model constructors or pretrained weights).
+
+- AlexNet: five 3×3 convolutions with 64/192/384/256/256 channels, three 2×2 max-pooling layers, and a 4096 → 1024 → 512 → 10 classifier with dropout 0.5.
+- ResNet: ResNet-18 layout with a 3×3, 64-channel stem, four stages of two basic blocks (64/128/256/512 channels), 1×1 projection shortcuts when the shape changes, global average pooling and a 512 → 10 linear head.
