@@ -17,3 +17,6 @@ __pycache__/
 .env
 .venv/
 venv/
+
+# Results archive created by the last notebook cell
+id2223_lab1_metrics.zip
